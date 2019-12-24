@@ -1,0 +1,64 @@
+# implementation of knap-sack algorithm
+# reference 1: http://www.es.ele.tue.nl/education/5MC10/Solutions/knapsack.pdf
+# reference 2: https://github.com/pcshih/pytorch-FCSN/tree/572123ae92cd598c2a12e7371fa10dc131e5797e
+
+import numpy as np
+from copy import deepcopy
+def knapscak(v, w, max_weight):
+  ##########################################################
+  # first define a table of the following format
+  # value * weight ->
+  #  v1   * w1 * w2 * w3 * w4 * w5 * .... * wn
+  #   *    *    *    *    *    *    * .... * wn
+  #  vn   * w1 * w2 * w3 * w4 * w5 * ... * wn
+  ##########################################################
+
+  rows = len(v)+1
+  cols = max_weight +1
+  # adding an additional rows of zeros to the
+  v = np.r_[[0], v]
+  w = np.r_[[0], w]
+  # define the two dimensional zeros array of n=rows and n=cols
+  dp_array = [[0 for i in range(cols)] for j in range(rows)]
+  keep = deepcopy(dp_array)
+  # values
+  # The knapsack algorithm
+  for i in range(1, rows):
+    for j in range(0, cols):
+      # (w[i] <= w) and (v[i] + dp_array[i-1, w-w[i]] > dp_array[i-1, w])
+      if (w[i] <= j) & (v[i] + dp_array[i-1][j-w[i]] > dp_array[i-1][j]):
+        dp_array[i][j] = v[i] + dp_array[i-1][j-w[i]]
+        keep[i][j] = 1
+      else:
+        dp_array[i][j] = dp_array[i-1][j]
+        keep[i][j] = 0
+  K = max_weight
+  choosen = []
+  for i in reversed(range(1,rows)):
+
+    if keep[i][K] == 1:
+      choosen.append(i-1)
+      K = K - w[i]
+  return dp_array[rows-1][max_weight], sorted(choosen)
+
+
+
+if __name__ == "__main__":
+
+    # Example 1
+    values = np.array([0.7, 0.15, 0.75])
+    weights = np.array([2, 2, 2])
+    max_weight = int(5)
+
+    max_value, choosen = knapscak(values, weights, max_weight)
+
+    print("The maximum value is {} and the elments index in original array are {}".format(max_value, choosen))
+
+    # Example 2
+    values = np.array([10, 40, 30, 50])
+    weights = np.array([5,4,6,3])
+    max_weight = int(10)
+
+    max_value, choosen = knapscak(values, weights, max_weight)
+
+    print("The maximum value is {} and the elments index in original array are {}".format(max_value, choosen))
